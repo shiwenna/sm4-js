@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>国密算法实现</title>
+  <script src="js/sm4.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+</head>
+
+<body>
+  <div id="app">
+    <h3>SM4 算法性能测试</h3>
+    <p>message：{{message}}</p>
+    <p>key： {{key}}</p>
+    <p style="word-break: break-all;">Ciphertext：{{cipherText}}</p>
+    <p>加密耗时：{{cipherTime}}ms</p>
+    <p>Plaintext：{{plainText}}</p>
+    <p>解密耗时：{{plainTime}}ms</p>
+  </div>
+</body>
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      message: '{"card_id":"3773329","register_card_no":"37273329","page":1,"limit":8,"company_id":"591","timestamp":1575424946}',
+      key: randomkey("1ab21d8355cfa17f8e61194831e81a8f22bec8c728fefb747ed035eb5082aa2b"),
+      cipherText: '',
+      plainText: '',
+      cipherTime: '',
+      plainTime: '',
+    },
+    methods: {
+      reverseMessage: function () {
+        this.message = this.message.split('').reverse().join('')
+      }
+    },
+    mounted() {
+      var start = new Date().getTime();
+      var ciphertext = sm4_encode_cbc(this.message, this.key);
+      var second = new Date().getTime();
+      for (var i = 0; i < ciphertext.length; i++) {
+        let hextext = ciphertext[i].toString(16);
+        this.cipherText += hextext.length == 16 ? hextext : "0".repeat(8 - hextext.length) + hextext;
+      }
+      this.cipherTime = second - start
+      var text = new Array();
+      for (var i = 0; i < this.cipherText.length; i += 8) {
+        text.push(parseInt(this.cipherText.slice(i, i + 8), 16))
+      }
+      var second = new Date().getTime();
+      this.plainText = sm4_decode_cbc(text, this.key);
+      var end = new Date().getTime();
+      this.plainTime = end - second;
+    }
+  })
+</script>
+
+</html>
